@@ -1,0 +1,238 @@
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Outfit:wght@300;400;500;600&display=swap');
+
+  .wrap { font-family: 'Outfit', sans-serif; padding: 32px 24px 40px; }
+
+  .legend {
+    display: flex; flex-wrap: wrap; gap: 20px;
+    justify-content: center; margin-bottom: 8px;
+  }
+  .leg-item { display: flex; align-items: center; gap: 7px; font-size: 13px; color: #5a5550; }
+  .leg-line {
+    width: 24px; height: 2px; border-radius: 2px; flex-shrink: 0;
+  }
+  .leg-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+  .chart-wrap {
+    display: flex; justify-content: center; margin-bottom: 36px;
+  }
+
+  .cards-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .card {
+    background: #fff;
+    border: 1px solid #e6e2dc;
+    border-radius: 12px;
+    padding: 18px 20px 16px;
+  }
+  .card-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: 15px; font-weight: 500;
+    color: #1a1916; margin-bottom: 12px;
+  }
+  .bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+  .bar-track {
+    flex: 1; height: 6px;
+    background: #ece8e2; border-radius: 3px; overflow: hidden;
+  }
+  .bar-fill { height: 100%; border-radius: 3px; transition: width 1.2s cubic-bezier(.16,1,.3,1); }
+  .bar-pct { font-size: 12px; font-weight: 500; min-width: 34px; text-align: right; }
+  .gap-label {
+    font-size: 12px; color: #6b6560; margin-top: 4px;
+  }
+</style>
+
+<div class="wrap">
+
+  <div class="legend">
+    <div class="leg-item">
+      <div class="leg-line" style="background:#2563a8"></div>
+      <div class="leg-dot" style="background:#2563a8"></div>
+      SAP Ariba
+    </div>
+    <div class="leg-item">
+      <div class="leg-line" style="background:#1a5c38"></div>
+      <div class="leg-dot" style="background:#1a5c38"></div>
+      Amazon B2B
+    </div>
+    <div class="leg-item">
+      <div class="leg-line" style="background:#9c3a20;border-top:2px dashed #9c3a20;height:0"></div>
+      <div class="leg-dot" style="background:#9c3a20"></div>
+      GEP Catalog 2022
+    </div>
+    <div class="leg-item">
+      <div class="leg-line" style="background:#3d7a4a"></div>
+      <div class="leg-dot" style="background:#3d7a4a"></div>
+      GEP Catalog 2023 MVP
+    </div>
+  </div>
+
+  <div class="chart-wrap">
+    <canvas id="radarChart" width="480" height="460" style="max-width:100%"></canvas>
+  </div>
+
+  <div class="cards-grid" id="cards"></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const axes = [
+  'Search &\ndiscoverability',
+  'Homepage\ndesign',
+  'AI\nsuggestions',
+  'Vendor\nonboarding',
+  'Order\nconfirmation',
+  'Role-aware\ncheckout',
+  'UX copy\n& help',
+];
+
+const axesFlat = [
+  'Search & discoverability',
+  'Homepage design',
+  'AI suggestions',
+  'Vendor onboarding',
+  'Order confirmation',
+  'Role-aware checkout',
+  'UX copy & help',
+];
+
+const data = {
+  ariba:  [92, 88, 82, 90, 88, 85, 90],
+  amazon: [95, 96, 94, 70, 92, 78, 88],
+  gep22:  [28, 32, 10, 52, 22, 35, 18],
+  gep23:  [88, 85, 75, 82, 86, 80, 72],
+};
+
+const ctx = document.getElementById('radarChart').getContext('2d');
+
+new Chart(ctx, {
+  type: 'radar',
+  data: {
+    labels: axesFlat,
+    datasets: [
+      {
+        label: 'SAP Ariba',
+        data: data.ariba,
+        borderColor: '#2563a8',
+        backgroundColor: 'rgba(37,99,168,.06)',
+        borderWidth: 1.8,
+        pointBackgroundColor: '#2563a8',
+        pointBorderColor: '#fff',
+        pointBorderWidth: 1.5,
+        pointRadius: 4,
+        pointHoverRadius: 5,
+      },
+      {
+        label: 'Amazon B2B',
+        data: data.amazon,
+        borderColor: '#1a5c38',
+        backgroundColor: 'rgba(26,92,56,.06)',
+        borderWidth: 1.8,
+        pointBackgroundColor: '#1a5c38',
+        pointBorderColor: '#fff',
+        pointBorderWidth: 1.5,
+        pointRadius: 4,
+        pointHoverRadius: 5,
+      },
+      {
+        label: 'GEP 2023 MVP',
+        data: data.gep23,
+        borderColor: '#3d7a4a',
+        backgroundColor: 'rgba(61,122,74,.18)',
+        borderWidth: 2,
+        pointBackgroundColor: '#3d7a4a',
+        pointBorderColor: '#fff',
+        pointBorderWidth: 1.5,
+        pointRadius: 4,
+        pointHoverRadius: 5,
+        order: 1,
+      },
+      {
+        label: 'GEP 2022',
+        data: data.gep22,
+        borderColor: '#9c3a20',
+        backgroundColor: 'rgba(156,58,32,.05)',
+        borderWidth: 1.5,
+        borderDash: [5, 4],
+        pointBackgroundColor: '#9c3a20',
+        pointBorderColor: '#fff',
+        pointBorderWidth: 1.5,
+        pointRadius: 4,
+        pointHoverRadius: 5,
+        order: 0,
+      },
+    ]
+  },
+  options: {
+    responsive: false,
+    animation: { duration: 900, easing: 'easeOutQuart' },
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.r}%`
+        }
+      }
+    },
+    scales: {
+      r: {
+        min: 0,
+        max: 100,
+        ticks: {
+          stepSize: 25,
+          color: '#a09890',
+          font: { size: 11, family: "'Outfit', sans-serif" },
+          backdropColor: 'transparent',
+          callback: v => v + '%',
+        },
+        grid: { color: 'rgba(0,0,0,.08)' },
+        angleLines: { color: 'rgba(0,0,0,.1)' },
+        pointLabels: {
+          font: { size: 12, family: "'Outfit', sans-serif" },
+          color: '#4a4540',
+          padding: 10,
+        }
+      }
+    }
+  }
+});
+
+const avgBenchmark = axesFlat.map((_, i) => (data.ariba[i] + data.amazon[i]) / 2);
+
+const gaps = axesFlat.map((ax, i) => ({
+  axis: ax,
+  gep22: data.gep22[i],
+  gep23: data.gep23[i],
+  gap22: Math.round(avgBenchmark[i] - data.gep22[i]),
+})).sort((a, b) => b.gap22 - a.gap22);
+
+const container = document.getElementById('cards');
+
+gaps.forEach(g => {
+  const closedPct = Math.round(((g.gep23 - g.gep22) / g.gap22) * 100);
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.innerHTML = `
+    <div class="card-title">${g.axis}</div>
+    <div class="bar-row">
+      <div class="bar-track">
+        <div class="bar-fill" style="width:${g.gep22}%;background:#c8523a"></div>
+      </div>
+      <span class="bar-pct" style="color:#9c3a20">${g.gep22}%</span>
+    </div>
+    <div class="bar-row">
+      <div class="bar-track">
+        <div class="bar-fill" style="width:${g.gep23}%;background:#3d7a4a"></div>
+      </div>
+      <span class="bar-pct" style="color:#3d7a4a">${g.gep23}%</span>
+    </div>
+    <div class="gap-label">+${closedPct}% gap closed</div>
+  `;
+  container.appendChild(card);
+});
+</script>
