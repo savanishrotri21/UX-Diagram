@@ -1,0 +1,141 @@
+
+<style>
+  .legend{display:flex;flex-wrap:wrap;gap:16px;justify-content:center;margin-bottom:20px;font-size:12px;color:var(--color-text-secondary)}
+  .legend-item{display:flex;align-items:center;gap:6px}
+  .legend-dot{width:10px;height:10px;border-radius:50%}
+  .tooltip{position:absolute;background:var(--color-background-primary);border:0.5px solid var(--color-border-secondary);border-radius:6px;padding:8px 12px;font-size:12px;color:var(--color-text-primary);pointer-events:none;opacity:0;transition:opacity .15s;white-space:nowrap;z-index:10}
+</style>
+
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot" style="background:#0C447C"></div>SAP Ariba</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#085041"></div>Amazon B2B</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#A32D2D;opacity:.75"></div>GEP 2022</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#3B6D11"></div>GEP 2023 MVP</div>
+</div>
+
+<div style="position:relative;display:flex;justify-content:center">
+  <canvas id="rc" width="520" height="480" style="max-width:100%"></canvas>
+  <div class="tooltip" id="tip"></div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:20px" id="score-cards"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const axes = [
+  'Search &\ndiscoverability',
+  'Homepage\ndesign',
+  'AI suggestions',
+  'Vendor\nonboarding',
+  'Order\nconfirmation',
+  'Role-aware\ncheckout',
+  'UX copy\n& help',
+];
+
+const axesFlat = [
+  'Search & discoverability',
+  'Homepage design',
+  'AI suggestions',
+  'Vendor onboarding',
+  'Order confirmation',
+  'Role-aware checkout',
+  'UX copy & help',
+];
+
+const datasets = [
+  { label: 'SAP Ariba',    data: [92,88,82,90,88,85,90], color: '#0C447C', alpha: '.18' },
+  { label: 'Amazon B2B',   data: [95,96,94,70,92,78,88], color: '#085041', alpha: '.18' },
+  { label: 'GEP 2022',     data: [28,32,10,52,22,35,18], color: '#A32D2D', alpha: '.18' },
+  { label: 'GEP 2023 MVP', data: [88,85,75,82,86,80,72], color: '#3B6D11', alpha: '.25' },
+];
+
+const hexToRgba = (hex, a) => {
+  const r = parseInt(hex.slice(1,3),16);
+  const g = parseInt(hex.slice(3,5),16);
+  const b = parseInt(hex.slice(5,7),16);
+  return `rgba(${r},${g},${b},${a})`;
+};
+
+new Chart(document.getElementById('rc'), {
+  type: 'radar',
+  data: {
+    labels: axesFlat,
+    datasets: datasets.map(d => ({
+      label: d.label,
+      data: d.data,
+      borderColor: d.color,
+      backgroundColor: hexToRgba(d.color, d.label === 'GEP 2022' ? .08 : .12),
+      borderWidth: d.label === 'GEP 2022' ? 1.5 : 2,
+      borderDash: d.label === 'GEP 2022' ? [5,3] : [],
+      pointBackgroundColor: d.color,
+      pointBorderColor: '#fff',
+      pointBorderWidth: 1.5,
+      pointRadius: 4,
+      pointHoverRadius: 6,
+    }))
+  },
+  options: {
+    responsive: false,
+    animation: { duration: 900, easing: 'easeOutQuart' },
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.r}%`
+        }
+      }
+    },
+    scales: {
+      r: {
+        min: 0, max: 100,
+        ticks: {
+          stepSize: 25,
+          color: '#888',
+          font: { size: 10 },
+          backdropColor: 'transparent',
+          callback: v => v + '%',
+        },
+        grid: { color: 'rgba(128,128,128,.15)' },
+        angleLines: { color: 'rgba(128,128,128,.2)' },
+        pointLabels: {
+          font: { size: 11 },
+          color: '#666',
+        }
+      }
+    }
+  }
+});
+
+const gaps = axesFlat.map((ax, i) => ({
+  axis: ax,
+  gap22: Math.round(((datasets[0].data[i] + datasets[1].data[i]) / 2) - datasets[2].data[i]),
+  gap23: Math.round(((datasets[0].data[i] + datasets[1].data[i]) / 2) - datasets[3].data[i]),
+  gep22: datasets[2].data[i],
+  gep23: datasets[3].data[i],
+}));
+
+const cards = document.getElementById('score-cards');
+gaps.sort((a,b) => b.gap22 - a.gap22).forEach(g => {
+  const closed = g.gap22 - Math.max(g.gap23, 0);
+  const closedPct = Math.round((closed / g.gap22) * 100);
+  const card = document.createElement('div');
+  card.style.cssText = 'background:var(--color-background-secondary);border-radius:8px;padding:12px 14px;border:0.5px solid var(--color-border-tertiary)';
+  card.innerHTML = `
+    <div style="font-size:12px;font-weight:500;color:var(--color-text-primary);margin-bottom:6px">${g.axis}</div>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+      <div style="flex:1;height:5px;background:var(--color-border-tertiary);border-radius:3px;overflow:hidden">
+        <div style="height:100%;width:${g.gep22}%;background:#A32D2D;border-radius:3px;opacity:.75"></div>
+      </div>
+      <span style="font-size:11px;color:#A32D2D;min-width:28px;text-align:right">${g.gep22}%</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <div style="flex:1;height:5px;background:var(--color-border-tertiary);border-radius:3px;overflow:hidden">
+        <div style="height:100%;width:${g.gep23}%;background:#3B6D11;border-radius:3px"></div>
+      </div>
+      <span style="font-size:11px;color:#3B6D11;min-width:28px;text-align:right">${g.gep23}%</span>
+    </div>
+    <div style="font-size:10px;color:var(--color-text-tertiary);margin-top:6px">${closedPct > 0 ? '+' + closedPct + '% gap closed' : 'Gap remains'}</div>
+  `;
+  cards.appendChild(card);
+});
+</script>
